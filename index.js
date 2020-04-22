@@ -11,15 +11,15 @@ class ElementHandler {
     text.replace(text.text.replace(this.before, this.after))
   }
 }
-/**
- * Respond with hello worker text
- * @param {Request} request
- */
+
 let containsPg = (val) => val.includes("pg")
 
 async function handleRequest(request) {
+  //gets current cookies
   let cookies = request.headers.get('Cookie');
+  //sets num to either the 'pg' cookie (if it exists) or a 50% chance of a 1 or a 0. 
   let num = cookies != null && cookies.includes("pg=") ? parseInt(cookies.split(";").find(containsPg).slice(-1)[0]) : (Math.random() > .5 ? 1 : 0)
+  //initial fetch to acquire the two possible urls. Then fetches to url based on num  (either the first url or the second)
   let oldResponse = await fetch(
     "https://cfw-takehome.developers.workers.dev/api/variants",
     { 'content-type': 'application/json'})
@@ -28,7 +28,8 @@ async function handleRequest(request) {
     .then(url => fetch(
       url, {'content-type': 'text/html;charset=UTF-8'}
     ))
-
+  
+  //edits elements on the page
   let newResponse = new HTMLRewriter()
     .on('h1#title', new ElementHandler("Variant", "Page #"))
     .on('title', new ElementHandler("Variant", "Jacob Hamilton"))
@@ -41,6 +42,7 @@ async function handleRequest(request) {
     .on('a#url', new ElementHandler("Return to cloudflare.com", "Head to my personal website"))
     .transform(oldResponse)
 
+    //sets the cookie to preserve which page it is on
     newResponse.headers.set('Set-Cookie', 'pg='+num)
     
   return newResponse;
