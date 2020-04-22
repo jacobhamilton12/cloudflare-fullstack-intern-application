@@ -1,6 +1,6 @@
-name = "{{project-name}}"
+name = "myworker"
 type = "javascript"
-account_id = ""
+account_id = "32ebb87c0b007a737043be8967dbbe33"
 workers_dev = true
-route = ""
 zone_id = ""
+route = ""
