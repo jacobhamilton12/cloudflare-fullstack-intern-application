@@ -15,28 +15,33 @@ class ElementHandler {
  * Respond with hello worker text
  * @param {Request} request
  */
+let containsPg = (val) => val.includes("pg")
+
 async function handleRequest(request) {
+  let cookies = request.headers.get('Cookie');
+  let num = cookies != null && cookies.includes("pg=") ? parseInt(cookies.split(";").find(containsPg).slice(-1)[0]) : (Math.random() > .5 ? 1 : 0)
   let oldResponse = await fetch(
     "https://cfw-takehome.developers.workers.dev/api/variants",
     { 'content-type': 'application/json'})
     .then(res => res.json())
-    .then(data => data.variants[Math.random() > .5 ? 1 : 0])
+    .then(data => data.variants[num])
     .then(url => fetch(
       url, {'content-type': 'text/html;charset=UTF-8'}
     ))
 
   let newResponse = new HTMLRewriter()
-    .on('h1#title', new ElementHandler("Variant", "Jacob's Page"))
+    .on('h1#title', new ElementHandler("Variant", "Page #"))
     .on('title', new ElementHandler("Variant", "Jacob Hamilton"))
     .on('p#description', new ElementHandler("This is variant", "This is Jacob's Page #"))
     .on('a#url', {
-      element(element){element.replace(`<a class="inline-flex justify-center w-full rounded-md border border-transparent
-       px-4 py-2 bg-red-600 text-base leading-6 font-medium shadow-sm hover:bg-red-500 focus:outline-none 
-       focus:border-green-700 focus:shadow-outline-indigo transition ease-in-out duration-150 sm:text-sm sm:leading-5" href="http://people.tamu.edu/~jake7054" id="url">
-      Go to people.tamu.edu/~jake7054
-    </a>`, {html: true})}
+      element(element){
+        element.setAttribute('href', 'http://people.tamu.edu/~jake7054')
+      }
     })
+    .on('a#url', new ElementHandler("Return to cloudflare.com", "Head to my personal website"))
     .transform(oldResponse)
+
+    newResponse.headers.set('Set-Cookie', 'pg='+num)
     
   return newResponse;
 }
